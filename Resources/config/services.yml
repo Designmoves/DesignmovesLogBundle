@@ -1,0 +1,60 @@
+parameters:
+    designmoves_log.entry.entity: Designmoves\Bundle\LogBundle\Entity\LogEntry
+
+services:
+    #
+    # Controller/Repository/Service/Twig
+    #
+    designmoves_log.entry.controller:
+        class: Designmoves\Bundle\LogBundle\Controller\LogEntryController
+        arguments:
+            - '@templating'
+        calls:
+            - [setContainer, ['@service_container']]
+
+    designmoves_log.entry.repository:
+        class: Designmoves\Bundle\LogBundle\Repository\LogEntryRepository
+        arguments:
+            - '@designmoves_log.entry.entity_manager'
+            - '@designmoves_log.entry.class_meta_data'
+
+    designmoves_log.entry.entity_manager:
+        class: Designmoves\Bundle\LogBundle\EntityManager
+        factory: ['@doctrine', getManagerForClass]
+        arguments:
+            - '%designmoves_log.entry.entity%'
+
+    designmoves_log.entry.class_meta_data:
+          class: Doctrine\ORM\Mapping\ClassMetadata
+          arguments:
+              - '%designmoves_log.entry.entity%'
+
+    designmoves_log.entry.service:
+        class: Designmoves\Bundle\LogBundle\Service\LogEntryService
+        arguments: 
+            - '@designmoves_log.entry.repository'
+
+    designmoves_log.entry.subscriber:
+        class: Designmoves\Bundle\LogBundle\EventListener\LogEntrySubscriber
+        tags:
+            - { name: doctrine.event_subscriber }
+
+    designmoves_log.twig.entries_extension:
+        public: true
+        class: Designmoves\Bundle\LogBundle\Twig\EntriesExtension
+        arguments:
+            - '@designmoves_log.entry.service'
+        tags:
+            - { name: twig.extension }
+
+    designmoves_log.twig.priority_label_extension:
+        public: false
+        class: Designmoves\Bundle\LogBundle\Twig\PriorityLabelExtension
+        tags:
+            - { name: twig.extension }
+
+    designmoves_log.twig.priority_name_extension:
+        public: false
+        class: Designmoves\Bundle\LogBundle\Twig\PriorityNameExtension
+        tags:
+            - { name: twig.extension }

@@ -1,0 +1,3 @@
+designmoves_log:
+    resource: "@DesignmovesLogBundle/Controller"
+    type:     annotation

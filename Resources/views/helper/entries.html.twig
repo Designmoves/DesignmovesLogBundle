@@ -1,0 +1,82 @@
+<div class="table-responsive">
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>Priority</th>
+        <th>Channel</th>
+        <th>IP address</th>
+        <th>Request</th>
+        <th>Log date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in entries %}
+        <tr>
+          <td>
+            <a data-toggle="modal"
+               data-target="#log-{{ entry.logEntryId }}"
+               style="cursor: pointer; text-decoration: none;">
+              {{ log_priority_label(entry.priority) }}</a>
+
+            <div class="modal fade"
+                 id="log-{{ entry.logEntryId }}"
+                 tabindex="-1"
+                 role="dialog"
+                 aria-labelledby="log-{{ entry.logEntryId }}-label">
+              <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="close">
+                      <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">
+                      <div class="btn-group btn-group-xs" role="group">
+                        <button type="button" class="btn btn-default">
+                          {{ icon('chevron-left+fw') }}</button>
+                        <button type="button" class="btn btn-default">
+                          {{ icon('chevron-right+fw') }}</button>
+                      </div>
+                      Log item details
+                      <small>#{{ entry.logEntryId }}</small>
+                    </h4>
+                  </div> <!-- /.modal-header -->
+                  <div class="modal-body">
+                    <dl class="dl-horizontal">
+                      <dt>Log date</dt>
+                      <dd>{{ entry.logDate|date() }}</dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                      <dt>Priority</dt>
+                      <dd>{{ log_priority_label(entry.priority) }}</dd>
+                      <dt>Channel</dt>
+                      <dd>{{ entry.channel|default('-') }}</dd>
+                      <dt>Message</dt>
+                      <dd style="white-space: pre-line;">{{ entry.message|default('-') }}</dd>
+                      <dt>Context</dt>
+                      <dd>{{ entry.context|default('-') }}</dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                      <dt>Status code</dt>
+                      <dd>{{ entry.statusCode|default('-') }}</dd>
+                      <dt>The request</dt>
+                      <dd>{{ entry.theRequest|default('-') }}</dd>
+                      <dt>Referer</dt>
+                      <dd>{{ entry.referrer|default('-') }}</dd>
+                      <dt>IP address</dt>
+                      <dd>{{ entry.ipAddress|default('-') }}</dd>
+                      <dt>User agent</dt>
+                      <dd>{{ entry.userAgent|default('-') }}</dd>
+                    </dl>
+                  </div> <!-- /.modal-body -->
+                </div> <!-- /.modal-content -->
+              </div> <!-- /.modal-dialog -->
+            </div> <!-- /.modal -->
+          </td>
+          <td>{{ entry.channel }}</td>
+          <td>{{ entry.ipAddress|default('-') }}</td>
+          <td>{{ entry.theRequest }}</td>
+          <td>{{ entry.logDate|date() }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

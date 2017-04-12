@@ -1,0 +1,108 @@
+# Priorities/levels
+# -----------------
+# DEBUG     100
+# INFO      200
+# NOTICE    250
+# WARNING   300
+# ERROR     400
+# CRITICAL  500
+# ALERT     550
+# EMERGENCY 600
+
+# Channels: doctrine, event, security, request, app
+# -------------------------------------------------
+# monolog.logger.backtrace
+# monolog.logger.designmoves_log
+#
+# monolog.logger.assetic
+# monolog.logger.cache
+# monolog.logger.doctrine
+# monolog.logger.event
+# monolog.logger.error
+# monolog.logger.php
+# monolog.logger.profiler
+# monolog.logger.request
+# monolog.logger.router
+# monolog.logger.security
+# monolog.logger.templating
+# monolog.logger.translation
+
+services:
+    monolog.handler.fingers_crossed.channel_level_activation_strategy:
+        class: Monolog\Handler\FingersCrossed\ChannelLevelActivationStrategy
+        arguments:
+            - !php/const:Monolog\Logger::WARNING
+            - {
+                'app': !php/const:Monolog\Logger::INFO,
+                'request': !php/const:Monolog\Logger::ERROR
+              }
+
+    #
+    # Database handler + processors
+    #
+    designmoves_log.logger.database:
+        class: Designmoves\Bundle\LogBundle\Logger\DatabaseHandler
+        arguments:
+            # Minimum level is INFO (= never log DEBUG messages)
+            - !php/const:Monolog\Logger::INFO
+        calls:
+            - [setContainer, ['@service_container']]
+        tags:                                                                                                                                                                                 
+             - { name: monolog.logger, channel: designmoves_log }
+
+    # Processes a record's message according to PSR-3 rules
+    # It replaces {foo} with the value from $context['foo']
+    monolog.processor.psr_log_message:
+        class: Monolog\Processor\PsrLogMessageProcessor
+        tags:
+            - { name: monolog.processor }
+
+    # Add url, ip, http_method, server, referrer to extra array
+    monolog.processor.web:
+        class: Monolog\Processor\WebProcessor
+        tags:
+            - { name: monolog.processor }
+
+    designmoves_log.processor.ip_address:
+        class: Designmoves\Bundle\LogBundle\Processor\IpAddressProcessor
+        arguments:
+            - '@request_stack'
+        tags:
+            - { name: monolog.processor }
+
+    designmoves_log.processor.the_request:
+        class: Designmoves\Bundle\LogBundle\Processor\TheRequestProcessor
+        arguments:
+            - '@request_stack'
+        tags:
+            - { name: monolog.processor }
+
+    designmoves_log.processor.user_agent:
+        class: Designmoves\Bundle\LogBundle\Processor\UserAgentProcessor
+        arguments:
+            - '@request_stack'
+        tags:
+            - { name: monolog.processor }
+
+monolog:
+    # Disable Microseconds Precision (for a Performance Boost)
+    use_microseconds: false
+    handlers:
+        main:
+            type:   fingers_crossed
+            # if *one* log is info or higher, pass *all* to designmoves_log
+            action_level:         info
+            activation_strategy:  monolog.handler.fingers_crossed.channel_level_activation_strategy
+            handler:              designmoves_log
+            
+        # now passed *all* logs, but only if one log is info or higher
+        designmoves_log:
+            type:    service
+            id:      designmoves_log.logger.database
+            level:   info
+
+        # still passed *all* logs, and still only logs error or higher
+        file_log:
+            type:   rotating_file
+            path:   "%kernel.logs_dir%/%kernel.environment%.log"
+            level:  error

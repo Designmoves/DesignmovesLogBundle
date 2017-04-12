@@ -1,0 +1,36 @@
+{% extends 'base-admin.html.twig' %}
+
+{% block pageTitle %}Application log{% endblock %}
+
+{% block pageContent %}
+  {{ log_entries_set_page(page) }}
+
+  {% set pagination %}
+  {{
+  pagination_control(
+      log_entries_get_entries(),
+      {'route': 'designmoves_log.log.list'}
+  )
+  }}
+  {% endset %}
+
+  {{ pagination }}
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">
+        {{ icon('sticky-note-o+fw') }} Application log
+        <div class="btn-group btn-group-xs pull-right">
+          <a href="{{ path('designmoves_log.log.test') }}"
+             class="btn btn-default"
+             target="_blank">Info-test</a>
+          <a href="{{ path('designmoves_log.log.test-exception') }}"
+             class="btn btn-default"
+             target="_blank">Exception-test</a>
+        </div>
+      </h3>
+    </div>
+    {{ log_entries() }}
+  </div> <!-- /.panel -->
+  {{ pagination }}
+
+{% endblock %}
